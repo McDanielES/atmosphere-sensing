@@ -1,2 +1,2 @@
 # Atmospheric Sensing
-### An undergraduate research project from UW Fox Valley for the automation of collection the measurement of atmospheric data from a drone.
+### An undergraduate research project from UW Fox Valley. Allows a Raspberry Pi to collect atmosphereic measurements from a drone.
