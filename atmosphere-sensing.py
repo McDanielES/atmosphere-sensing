@@ -20,10 +20,12 @@ import os.path
 '''
 import RPi.GPIO as GPIO
 import time
-from time import gmtime, strftime
+from time import localtime, strftime
+import os.path
 
 DHT   = 17  # BCM is 17, Board is 11
 LED_1 = 27  # BCM is 27, Board is 13
+LED_2 = 22  # BCM is 22, Board is 15
 
 GPIO.setmode(GPIO.BCM)    # Move this to setup?
 
@@ -34,12 +36,12 @@ STATE_DATA_FIRST_PULL_DOWN = 3
 STATE_DATA_PULL_UP 		   = 4
 STATE_DATA_PULL_DOWN 	   = 5
 
-
-
 def setup():
 	GPIO.setmode(GPIO.BCM)      # Numbers GPIOs by physical location
 	GPIO.setup(LED_1, GPIO.OUT)   # Set LED_1's mode is output
 	GPIO.output(LED_1, GPIO.HIGH) # Set LED_1 high(+3.3V) to off led
+	GPIO.setup(LED_2, GPIO.OUT)   # Set LED_2's mode is output
+	GPIO.output(LED_2, GPIO.HIGH) # Set LED_2 high(+3.3V) to off led
 #	GPIO.setwarnings(False) # Previously in main()
 
 def read_dht11_dat(currentTime):
@@ -143,20 +145,21 @@ def main():
 
 	# Concatenate the parent/child directories with file name
 	currentDir = os.path.dirname(os.path.realpath(__file__))
-	subDir = "flight-test-data"
+	originPath = os.path.join(currentDir, "flight-test-data")
 	filename = "HumidityTemp_" + strftime("%m-%d-%Y_%H:%M:%S_%p", localtime()) + ".txt"
-	filepath = os.path.join(currentDir, subDir, filename)
+	filepath = os.path.join(originPath, filename)
 
 	# Create child directory if none exists
-	if not os.path.exists(subDir):
-		os.mkdir(os.path.join(currentDir, subDir))
+	if not os.path.exists(originPath):
+		os.mkdir(os.path.join(originPath))
 
 	# Open this file as append mode
 	textfile = open(filepath, "a")
 
 	# Script is loaded, file is opened. Illuminate LED to notify user that
 	# drone is ready, don't start until the switch is activated
-#	GPIO.output(LedPin, GPIO.LOW)	
+#	Setup GPIO with pin layout for pull down switch
+#	GPIO.output(LedPin, GPIO.LOW)	# On?
 	ready = False
 	while not ready:
 		# if(Button is pressed)
@@ -164,14 +167,13 @@ def main():
 		# BUTTON is not pressed
 		time.sleep(0.05)	
 	
-#	Setup GPIO with pin layout for pull down switch
 #	Activate Green LED_1 that file is ready to write, Pull Up
 	currentTime = 0
-#	Replace Whle true loop with:
+
 #	While (currentTime < 600) AND (Switch is pulled down)
 	while (True):
 		currentTime += 1
-		time.sleep(1)		# Time will eventually need to be modified to accomodate LED_1 strobe
+		
 #		result = read_dht11_dat(currentTime)
 		result = 2, 2       # Temp
 		if result:
@@ -180,11 +182,17 @@ def main():
 			textfile.write("%s, %s, %s\n" % (humidity, temperature, currentTime))
 		else:
 			textfile.write("-1, -1, %s\n" % (currentTime))
-#		Strobe LED_1 here
+
+		# oscilate the LED on/off to indicate each file write
+#		GPIO.output(LedPin, GPIO.HIGH)
+		time.sleep(0.5)
+#		GPIO.output(LedPin, GPIO.LOW)
+		time.sleep(0.45)
 	textfile.close
 	print("Done. Normal Termination. Ten minutes have elapsed.")
 	
-#	Activate Red LED_2 to indicate program terminated
+	# Activate red LED to indicate that program is done
+#	GPIO.output(LED_2, GPIO.LOW)	# On?
         
 
 def destroy():
