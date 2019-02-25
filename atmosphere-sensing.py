@@ -38,7 +38,7 @@ def setup():
 	GPIO.setup(LED_1, GPIO.OUT)   # Set LED_1's mode is output
 	GPIO.output(LED_1, GPIO.LOW) # Set LED_1 high(+3.3V) to off led
 	GPIO.setup(LED_2, GPIO.OUT)   # Set LED_2's mode is output
-	GPIO.output(LED_2, GPIO.HIGH) # Set LED_2 high(+3.3V) to off led
+	GPIO.output(LED_2, GPIO.LOW) # Set LED_2 high(+3.3V) to off led
 #	GPIO.setwarnings(False) # Previously in main()
 
 def read_dht11_dat(currentTime):
@@ -178,10 +178,10 @@ def main():
 		else:
 			textfile.write("-1, -1, %s\n" % (currentTime))
 
-		# oscilate the LED on/off to indicate each file write
-#		GPIO.output(LedPin, GPIO.HIGH)
+		# Oscillate the LED on/off to indicate each file write
+		GPIO.output(LED_2, GPIO.HIGH)
 		time.sleep(0.5)
-#		GPIO.output(LedPin, GPIO.LOW)
+		GPIO.output(LED_2, GPIO.LOW)
 		time.sleep(0.45)
 	
 	textfile.close
