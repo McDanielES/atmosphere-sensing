@@ -11,13 +11,10 @@
 * Update      : 1/10/19
 **********************************************************************
 '''
-# Remove these import statements when uncommenting below
-import time
-from time import localtime, strftime
-import sys
-import os.path
 
-'''
+import sys
+
+
 import RPi.GPIO as GPIO
 import time
 from time import localtime, strftime
@@ -134,7 +131,7 @@ def read_dht11_dat(currentTime):
 		return False
 
 	return the_bytes[0], the_bytes[2]
-'''
+
 
 def main():
 	# Print general info
