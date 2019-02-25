@@ -193,12 +193,11 @@ def main():
         
 
 def destroy():
-#	GPIO.cleanup()
-	pass # remove
+	GPIO.cleanup()
 
 if __name__ == '__main__':
 	try:
 		main()
 	except KeyboardInterrupt:
+		destroy() 
 		pass
-#		destroy() 
