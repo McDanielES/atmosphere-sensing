@@ -23,6 +23,7 @@ import os.path
 DHT   = 17  # BCM is 17, Board is 11
 LED_1 = 27  # BCM is 27, Board is 13
 LED_2 = 22  # BCM is 22, Board is 15
+PUD   = 23  # BCM is 23, Board is 16
 
 GPIO.setmode(GPIO.BCM)    # Move this to setup?
 
@@ -34,11 +35,12 @@ STATE_DATA_PULL_UP 		   = 4
 STATE_DATA_PULL_DOWN 	   = 5
 
 def setup():
-	GPIO.setmode(GPIO.BCM)      # Numbers GPIOs by physical location
+	GPIO.setmode(GPIO.BCM)        # Numbers GPIOs by physical location
 	GPIO.setup(LED_1, GPIO.OUT)   # Set LED_1's mode is output
-	GPIO.output(LED_1, GPIO.LOW) # Set LED_1 high(+3.3V) to off led
+	GPIO.output(LED_1, GPIO.LOW)  # Set LED_1 high(+3.3V) to off led
 	GPIO.setup(LED_2, GPIO.OUT)   # Set LED_2's mode is output
-	GPIO.output(LED_2, GPIO.LOW) # Set LED_2 high(+3.3V) to off led
+	GPIO.output(LED_2, GPIO.LOW)  # Set LED_2 high(+3.3V) to off led
+	GPIO.setup(PUD, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
 #	GPIO.setwarnings(False) # Previously in main()
 
 def read_dht11_dat(currentTime):
@@ -114,7 +116,6 @@ def read_dht11_dat(currentTime):
 		if length > halfway:
 			bit = 1
 		bits.append(bit)
-#	print ("bits: %s, length: %d" % (bits, len(bits)))
 	for i in range(0, len(bits)):
 		byte = byte << 1
 		if (bits[i]):
@@ -124,7 +125,6 @@ def read_dht11_dat(currentTime):
 		if ((i + 1) % 8 == 0):
 			the_bytes.append(byte)
 			byte = 0
-#	print (the_bytes)
 	checksum = (the_bytes[0] + the_bytes[1] + the_bytes[2] + the_bytes[3]) & 0xFF
 	if the_bytes[4] != checksum:
 		print ("\tCorrupt Data\t\t    Time: %s Seconds" % (currentTime))
@@ -155,15 +155,14 @@ def main():
 
 	# Script is loaded, file is opened. Illuminate LED to notify user that
 	# drone is ready, don't start until the switch is activated
-	GPIO.output(LED_1, GPIO.HIGH)	# On?
-	ready = True # Temp for False
+	GPIO.output(LED_1, GPIO.HIGH)
+	ready = False
 	while not ready:
-		# if(Button is pressed)
-			# ready = True
-		# BUTTON is not pressed
-		time.sleep(0.05)	
-	
-#	Activate Green LED_1 that file is ready to write, Pull Up
+		if GPIO.input(23) == GPIO.HIGH:
+			ready = True
+		time.sleep(0.05)
+		print("Not Ready yet.")
+
 	currentTime = 0
 
 #	While (currentTime < 600) AND (Switch is pulled down)
@@ -173,7 +172,7 @@ def main():
 		result = read_dht11_dat(currentTime)
 		if result:
 			humidity, temperature = result
-			print ("Humidity: %s%%,  Temperature: %s C, Time: %s Seconds" % (humidity, temperature, currentTime))
+			print("Humidity: %s%%,  Temperature: %s C, Time: %s Seconds" % (humidity, temperature, currentTime))
 			textfile.write("%s, %s, %s\n" % (humidity, temperature, currentTime))
 		else:
 			textfile.write("-1, -1, %s\n" % (currentTime))
@@ -187,9 +186,8 @@ def main():
 	textfile.close
 	print("Done. Normal Termination.")
 	
-	# Activate red LED to indicate that program is done
-#	GPIO.output(LED_2, GPIO.LOW)	# On?
-        
+	# Cleanup GPIO, turn off LEDs.
+	GPIO.cleanup()
 
 def destroy():
 	GPIO.cleanup()
