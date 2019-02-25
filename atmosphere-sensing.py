@@ -7,12 +7,12 @@
 * Author      : Eric McDaniel - University of Wisconsin - Fox Valley
 * E-mail      : MCDAE6861@students.uwc.edu
 * Website     : https://github.com/McDanielES
-* Version     : 1.1
-* Update      : 1/10/19
+* Version     : 1.2
+* Update      : 2/24/19
 **********************************************************************
 '''
 
-import sys
+# import sys
 
 
 import RPi.GPIO as GPIO
@@ -135,7 +135,7 @@ def read_dht11_dat(currentTime):
 
 def main():
 	# Print general info
-	print("Sourced from the SunFounder Electronis Kit,")
+	print("Sourced from the SunFounder Electronics Kit,")
 	print("Raspberry Pi wiringPi DHT11 Temperature program.")
 	print("Modified by Eric McDaniel for undergraduate research on a RPi-fitted drone.\n")
 	setup()
@@ -155,9 +155,8 @@ def main():
 
 	# Script is loaded, file is opened. Illuminate LED to notify user that
 	# drone is ready, don't start until the switch is activated
-#	Setup GPIO with pin layout for pull down switch
-#	GPIO.output(LedPin, GPIO.LOW)	# On?
-	ready = True #Temp for False
+	GPIO.output(LED_1, GPIO.LOW)	# On?
+	ready = True # Temp for False
 	while not ready:
 		# if(Button is pressed)
 			# ready = True
@@ -199,5 +198,4 @@ if __name__ == '__main__':
 	try:
 		main()
 	except KeyboardInterrupt:
-		destroy() 
-		pass
+		destroy()
