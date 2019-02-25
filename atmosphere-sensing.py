@@ -156,17 +156,20 @@ def main():
 	# Script is loaded, file is opened. Illuminate LED to notify user that
 	# drone is ready, don't start until the switch is activated
 	GPIO.output(LED_1, GPIO.HIGH)
-	ready = False
+	if GPIO.input(23) == GPIO.HIGH:
+		ready = True
+	else:
+		print("Flip switch to begin data collection.")
+		ready = False
+
 	while not ready:
 		if GPIO.input(23) == GPIO.HIGH:
 			ready = True
-		time.sleep(0.05)
-		print("Not Ready yet.")
+		time.sleep(0.25)
 
 	currentTime = 0
 
-#	While (currentTime < 600) AND (Switch is pulled down)
-	while (True):
+	while (currentTime < 600) and (GPIO.input(23) == GPIO.HIGH):
 		currentTime += 1
 		
 		result = read_dht11_dat(currentTime)
