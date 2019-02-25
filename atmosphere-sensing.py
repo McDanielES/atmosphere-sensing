@@ -138,7 +138,7 @@ def main():
 	print("Sourced from the SunFounder Electronis Kit,")
 	print("Raspberry Pi wiringPi DHT11 Temperature program.")
 	print("Modified by Eric McDaniel for undergraduate research on a RPi-fitted drone.\n")
-#	setup()
+	setup()
 
 	# Concatenate the parent/child directories with file name
 	currentDir = os.path.dirname(os.path.realpath(__file__))
@@ -157,7 +157,7 @@ def main():
 	# drone is ready, don't start until the switch is activated
 #	Setup GPIO with pin layout for pull down switch
 #	GPIO.output(LedPin, GPIO.LOW)	# On?
-	ready = False
+	ready = True #Temp for False
 	while not ready:
 		# if(Button is pressed)
 			# ready = True
@@ -171,7 +171,7 @@ def main():
 	while (True):
 		currentTime += 1
 		
-#		result = read_dht11_dat(currentTime)
+		result = read_dht11_dat(currentTime)
 		result = 2, 2       # Temp
 		if result:
 			humidity, temperature = result
