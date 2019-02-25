@@ -172,7 +172,6 @@ def main():
 		currentTime += 1
 		
 		result = read_dht11_dat(currentTime)
-		result = 2, 2       # Temp
 		if result:
 			humidity, temperature = result
 			print ("Humidity: %s%%,  Temperature: %s C, Time: %s Seconds" % (humidity, temperature, currentTime))
