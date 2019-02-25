@@ -188,8 +188,9 @@ def main():
 		time.sleep(0.5)
 #		GPIO.output(LedPin, GPIO.LOW)
 		time.sleep(0.45)
+	
 	textfile.close
-	print("Done. Normal Termination. Ten minutes have elapsed.")
+	print("Done. Normal Termination.")
 	
 	# Activate red LED to indicate that program is done
 #	GPIO.output(LED_2, GPIO.LOW)	# On?
