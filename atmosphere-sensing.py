@@ -1,43 +1,61 @@
 '''
 **********************************************************************
-* Filename    : dht11.py
-* Description : test for SunFoudner DHT11 humiture & temperature module
-* Author      : Dream
-* Brand       : SunFounder
-* E-mail      : service@sunfounder.com
-* Website     : www.sunfounder.com
-* Update      : Dream    2016-09-30    New release
+* Filename    : atmosphere-sensing.py
+* Description : A script run by UW Fox Valley drone fitted with a
+*               Raspberry Pi 3B+. This script collects measurable
+* 				atmospheric data when the drone is in flight.
+* Author      : Eric McDaniel - University of Wisconsin - Fox Valley
+* E-mail      : MCDAE6861@students.uwc.edu
+* Website     : https://github.com/McDanielES
+* Version     : 1.2
+* Update      : 2/24/19
 **********************************************************************
 '''
+
+# import sys
+
+
 import RPi.GPIO as GPIO
 import time
-from time import gmtime, strftime
+from time import localtime, strftime
+import os.path
 
-DHTPIN = 17
+DHT   = 17  # BCM is 17, Board is 11
+LED_1 = 27  # BCM is 27, Board is 13
+LED_2 = 22  # BCM is 22, Board is 15
+PUD   = 23  # BCM is 23, Board is 16
 
-GPIO.setmode(GPIO.BCM)
+GPIO.setmode(GPIO.BCM)    # Move this to setup?
 
-MAX_UNCHANGE_COUNT = 100
-
-STATE_INIT_PULL_DOWN = 1
-STATE_INIT_PULL_UP = 2
+MAX_UNCHANGE_COUNT 		   = 100
+STATE_INIT_PULL_DOWN 	   = 1
+STATE_INIT_PULL_UP 		   = 2
 STATE_DATA_FIRST_PULL_DOWN = 3
-STATE_DATA_PULL_UP = 4
-STATE_DATA_PULL_DOWN = 5
+STATE_DATA_PULL_UP 		   = 4
+STATE_DATA_PULL_DOWN 	   = 5
+
+def setup():
+	GPIO.setmode(GPIO.BCM)        # Numbers GPIOs by physical location
+	GPIO.setup(LED_1, GPIO.OUT)   # Set LED_1's mode is output
+	GPIO.output(LED_1, GPIO.LOW)  # Set LED_1 high(+3.3V) to off led
+	GPIO.setup(LED_2, GPIO.OUT)   # Set LED_2's mode is output
+	GPIO.output(LED_2, GPIO.LOW)  # Set LED_2 high(+3.3V) to off led
+	GPIO.setup(PUD, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+#	GPIO.setwarnings(False) # Previously in main()
 
 def read_dht11_dat(currentTime):
-	GPIO.setup(DHTPIN, GPIO.OUT)
-	GPIO.output(DHTPIN, GPIO.HIGH)
+	GPIO.setup(DHT, GPIO.OUT)
+	GPIO.output(DHT, GPIO.HIGH)
 	time.sleep(0.05)
-	GPIO.output(DHTPIN, GPIO.LOW)
+	GPIO.output(DHT, GPIO.LOW)
 	time.sleep(0.02)
-	GPIO.setup(DHTPIN, GPIO.IN, GPIO.PUD_UP)
+	GPIO.setup(DHT, GPIO.IN, GPIO.PUD_UP)
 	
 	unchanged_count = 0
 	last = -1
 	data = []
 	while True:
-		current = GPIO.input(DHTPIN)
+		current = GPIO.input(DHT)
 		data.append(current)
 		if last != current:
 			unchanged_count = 0
@@ -98,7 +116,6 @@ def read_dht11_dat(currentTime):
 		if length > halfway:
 			bit = 1
 		bits.append(bit)
-#	print ("bits: %s, length: %d" % (bits, len(bits)))
 	for i in range(0, len(bits)):
 		byte = byte << 1
 		if (bits[i]):
@@ -108,7 +125,6 @@ def read_dht11_dat(currentTime):
 		if ((i + 1) % 8 == 0):
 			the_bytes.append(byte)
 			byte = 0
-#	print (the_bytes)
 	checksum = (the_bytes[0] + the_bytes[1] + the_bytes[2] + the_bytes[3]) & 0xFF
 	if the_bytes[4] != checksum:
 		print ("\tCorrupt Data\t\t    Time: %s Seconds" % (currentTime))
@@ -116,39 +132,65 @@ def read_dht11_dat(currentTime):
 
 	return the_bytes[0], the_bytes[2]
 
+
 def main():
-	print ("Sourced from the SunFounder Electronis Kit,\nRaspberry Pi wiringPi DHT11 Temperature program.\nModified by Eric McDaniel for undergraduate research on a RPi-fitted drone.\n")
+	# Print general info
+	print("Sourced from the SunFounder Electronics Kit,")
+	print("Raspberry Pi wiringPi DHT11 Temperature program.")
+	print("Modified by Eric McDaniel for undergraduate research on a RPi-fitted drone.\n")
+	setup()
+
+	# Concatenate the parent/child directories with file name
+	currentDir = os.path.dirname(os.path.realpath(__file__))
+	originPath = os.path.join(currentDir, "flight-test-data")
+	filename = "HumidityTemp_" + strftime("%m-%d-%Y_%H:%M:%S_%p", localtime()) + ".txt"
+	filepath = os.path.join(originPath, filename)
+
+	# Create child directory if none exists
+	if not os.path.exists(originPath):
+		os.mkdir(os.path.join(originPath))
+
+	# Open this file as append mode
+	textfile = open(filepath, "a")
+
+	# Script is loaded, file is opened. Illuminate LED to notify user that
+	# drone is ready, don't start until the switch is activated
+	GPIO.output(LED_1, GPIO.HIGH)
+	if GPIO.input(23) == GPIO.HIGH:
+		ready = True
+	else:
+		print("Flip switch to begin data collection.")
+		ready = False
+
+	while not ready:
+		if GPIO.input(23) == GPIO.HIGH:
+			ready = True
+		time.sleep(0.25)
+
 	currentTime = 0
-	fileCurrentTime = "/home/pi/Desktop/DroneTestData/Humid-Temp-"+ strftime("%m-%d-%Y_%H:%M:%S", gmtime()) + ".txt"
-	
-	GPIO.setwarnings(False)
-#	Setup GPIO with pin layout for pull down switch
-#	Activate Green LED_1 that file is ready to write, Pull Up
-	
-#	Replace Whle true loop with:
-#	While (currentTime < 600) AND (Switch is pulled down)
-	while (True):
+
+	while (currentTime < 600) and (GPIO.input(23) == GPIO.HIGH):
 		currentTime += 1
-		time.sleep(1)		# Time will eventually need to be modified to accomodate LED_1 strobe
+		
 		result = read_dht11_dat(currentTime)
 		if result:
 			humidity, temperature = result
-			print ("Humidity: %s %%,  Temperature: %s C, Time: %s Seconds" % (humidity, temperature, currentTime))
-			
-#	It's embarassing how much I could have simplified this...
-
-			text_file = open(fileCurrentTime, "a")
-			text_file.write("%s, %s, %s\n" % (humidity, temperature, currentTime))
-			text_file.close
+			print("Humidity: %s%%,  Temperature: %s C, Time: %s Seconds" % (humidity, temperature, currentTime))
+			textfile.write("%s, %s, %s\n" % (humidity, temperature, currentTime))
 		else:
-			text_file = open(fileCurrentTime, "a")
-			text_file.write("-1, -1, %s\n" % (currentTime))
-			text_file.close
-#		Strobe LED_1 here
-	print("Done. Normal Termination. Ten minutes have elapsed.")
+			textfile.write("-1, -1, %s\n" % (currentTime))
+
+		# Oscillate the LED on/off to indicate each file write
+		GPIO.output(LED_2, GPIO.HIGH)
+		time.sleep(0.5)
+		GPIO.output(LED_2, GPIO.LOW)
+		time.sleep(0.45)
 	
-#	Activate Red LED_2 to indicate program terminated
-        
+	textfile.close
+	print("Done. Normal Termination.")
+	
+	# Cleanup GPIO, turn off LEDs.
+	GPIO.cleanup()
 
 def destroy():
 	GPIO.cleanup()
@@ -157,4 +199,4 @@ if __name__ == '__main__':
 	try:
 		main()
 	except KeyboardInterrupt:
-		destroy() 
+		destroy()
