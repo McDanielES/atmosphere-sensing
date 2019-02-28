@@ -95,7 +95,7 @@ def read_dht11_dat(currentTime):
 			else:
 				continue
 	if len(lengths) != 40:
-		print("\tCorrupt Data\t\t   Time: %s Seconds" % (currentTime))
+		# print("\tCorrupt Data\t\t   Time: %s Seconds" % (currentTime))
 		return False
 
 	shortest_pull_up = min(lengths)
@@ -121,7 +121,7 @@ def read_dht11_dat(currentTime):
 			byte = 0
 	checksum = (the_bytes[0] + the_bytes[1] + the_bytes[2] + the_bytes[3]) & 0xFF
 	if the_bytes[4] != checksum:
-		print ("\tCorrupt Data\t\t    Time: %s Seconds" % (currentTime))
+		# print ("\tCorrupt Data\t\t    Time: %s Seconds" % (currentTime))
 		return False
 
 	return the_bytes[0], the_bytes[2]
@@ -165,12 +165,10 @@ def main():
 
 	while (currentTime < 600) and (GPIO.input(23) == GPIO.HIGH):
 		currentTime += 1
-		corruptCounter = 0
 		result = read_dht11_dat(currentTime)
+
 		while (result == False):
 			result = read_dht11_dat(currentTime)
-			print(corruptCounter)
-			corruptCounter += 1
 
 		if result:
 			humidity, temperature = result
