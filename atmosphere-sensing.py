@@ -182,10 +182,10 @@ def main():
 		time.sleep(0.5)
 		GPIO.output(LED_2, GPIO.LOW)
 		time.sleep(0.45)
-	
-	textfile.close
-	print("Done. Normal Termination.")
-	
+
+	textfile.close()
+	print("Done. Normal Termination.\n")
+
 	# Cleanup GPIO, turn off LEDs.
 	destroy()
 
