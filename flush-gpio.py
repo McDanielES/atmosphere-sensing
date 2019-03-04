@@ -1,5 +1,5 @@
 def main():
-    GPIO.cleanup()
+	GPIO.cleanup()
 
 def destroy():
 	GPIO.cleanup()
