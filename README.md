@@ -1,4 +1,4 @@
-## This repo has been DEPRECATED is favor of the [graphic dronepi](https://github.com/McDanielES/graphic-dronepi) repo, which does nearlt the same thing except also featues a curses console visualization at real-time, plus a few minor improvements and optimizations.
+## This repo has been DEPRECATED in favor of the [graphic dronepi](https://github.com/McDanielES/graphic-dronepi) repo, which does nearly the same thing, except also featues a curses console visualization at real-time, plus a few minor improvements and optimizations.
 
 ---
 
